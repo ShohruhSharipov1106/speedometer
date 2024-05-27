@@ -13,13 +13,12 @@ part 'speed_state.dart';
 
 class SpeedBloc extends Bloc<SpeedEvent, SpeedState> {
   SpeedBloc() : super(SpeedState(duration: Stopwatch())) {
-    final Stopwatch stopwatch = Stopwatch();
     Geolocator.getPositionStream(
         locationSettings: const LocationSettings(
       accuracy: LocationAccuracy.bestForNavigation,
       distanceFilter: 10,
     )).listen((position) async {
-      if (stopwatch.isRunning) {
+      if (state.duration.isRunning) {
         add(CheckSpeedEvent(position));
       }
     });
@@ -45,8 +44,6 @@ class SpeedBloc extends Bloc<SpeedEvent, SpeedState> {
             FlutterRingtonePlayer().stop();
           }
         }
-        print("duration: before ${stopwatch.elapsedMilliseconds}");
-        print("durationInMillicesonds: before ${state.durationInMillicesonds}");
         emit(
           state.copyWith(
             speed: event.position.speed.toInt(),
@@ -56,7 +53,7 @@ class SpeedBloc extends Bloc<SpeedEvent, SpeedState> {
             maxSpeed: state.maxSpeed < event.position.speed
                 ? event.position.speed.toInt()
                 : state.maxSpeed,
-            durationInMillicesonds: stopwatch.elapsedMilliseconds,
+            durationInMillicesonds: state.duration.elapsedMilliseconds,
             distance: state.distance +
                 Geolocator.distanceBetween(
                   state.initialLat,
@@ -66,18 +63,14 @@ class SpeedBloc extends Bloc<SpeedEvent, SpeedState> {
                 ),
           ),
         );
-        print("duration: after ${stopwatch.elapsedMilliseconds}");
-        print("durationInMillicesonds: after ${state.durationInMillicesonds}");
-      } catch (e) {
-        print(e);
-      }
+      } catch (e) {}
     });
     on<ResumeSpeedEvent>((event, emit) async {
-      stopwatch.start();
+      state.duration.start();
       emit(state.copyWith(isPaused: false));
     });
     on<ResetSpeedEvent>((event, emit) async {
-      stopwatch.reset();
+      state.duration.reset();
       final Position geolocator = await MyFunctions.determinePosition();
       emit(
         state.copyWith(
@@ -91,7 +84,7 @@ class SpeedBloc extends Bloc<SpeedEvent, SpeedState> {
       );
     });
     on<StopSpeedEvent>((event, emit) async {
-      stopwatch.stop();
+      state.duration.stop();
       emit(state.copyWith(isPlaying: false));
       final Position geolocator = await MyFunctions.determinePosition();
       final double distance = Geolocator.bearingBetween(state.initialLat,
@@ -103,7 +96,7 @@ class SpeedBloc extends Bloc<SpeedEvent, SpeedState> {
       );
     });
     on<PauseSpeedEvent>((event, emit) async {
-      stopwatch.stop();
+      state.duration.stop();
       final Position geolocator = await MyFunctions.determinePosition();
       final double distance = Geolocator.bearingBetween(state.initialLat,
           state.initialLong, geolocator.latitude, geolocator.longitude);
@@ -116,7 +109,7 @@ class SpeedBloc extends Bloc<SpeedEvent, SpeedState> {
     });
     on<StartSpeedEvent>((event, emit) async {
       try {
-        stopwatch.start();
+        state.duration.start();
         final Position geolocator = await MyFunctions.determinePosition();
         emit(
           state.copyWith(
@@ -125,9 +118,7 @@ class SpeedBloc extends Bloc<SpeedEvent, SpeedState> {
             isPlaying: true,
           ),
         );
-      } catch (e) {
-        print(e);
-      }
+      } catch (e) {}
     });
   }
 }

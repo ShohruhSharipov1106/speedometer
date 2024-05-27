@@ -105,15 +105,18 @@ class _SpeedMapState extends State<SpeedMap>
               bottom: 24,
               right: 24,
               child: MapControllerButtons(onMinusTap: () {
+                zoom = zoom - 1;
+                setState(() {});
                 mapController.moveCamera(
-                  CameraUpdate.zoomTo(zoom - 1),
+                  CameraUpdate.zoomTo(zoom),
                   animation: const MapAnimation(
                     duration: 0.2,
                     type: MapAnimationType.smooth,
                   ),
                 );
-                setState(() {});
               }, onPlusTap: () {
+                zoom = zoom + 1;
+                setState(() {});
                 mapController.moveCamera(
                   CameraUpdate.zoomTo(zoom + 1),
                   animation: const MapAnimation(
@@ -121,7 +124,6 @@ class _SpeedMapState extends State<SpeedMap>
                     type: MapAnimationType.smooth,
                   ),
                 );
-                setState(() {});
               }),
             ),
           ],
